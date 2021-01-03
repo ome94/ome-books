@@ -40,6 +40,7 @@ def main():
     # Convert the csv reader object to a list and remove the csv header
     books = list(reader)[1:]
 
+    progress = 0
     for isbn, title, author, year in books:
         # First Check if Author Already Exists in The Authors' Table
         author_id = get_author_id(author)
@@ -58,7 +59,8 @@ def main():
             }
         )
 
-        print(title)
+        progress += 1
+        print(f"{progress}/5000")
     
     db.commit()
 
