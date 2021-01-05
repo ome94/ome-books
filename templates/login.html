@@ -2,8 +2,8 @@
 
 {% block body %}
     <p> {{ message }} </p>
-    <form action="{{ url_for('authenticate') }}" method="POST">
-        Username: <input type="text" name="username" placeholder="password">
+    <form action="{{ url_for('login') }}" method="POST">
+        Username: <input type="text" name="username" placeholder="username">
         Password: <input type="password" name="password" placeholder="password">
         <button>login</button>
     </form>

@@ -20,23 +20,30 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
+# TODO:
+# Set up another database for users
+
 @app.route("/")
 def index():
-    return render_template('index.html', title='Home')
+    title = "Home"
+    heading = "Project 1: Books"
+    USER = session.get("USER")
 
-@app.route("/login")
+    return render_template('index.html', title=title, heading=heading, loggedin= bool(USER), user=USER)
+
+@app.route('/login', methods=["GET", "POST"])
 def login():
-    return render_template('login.html', title='Login')
+    if request.method == "GET":
+        title = heading = "Login"
 
-@app.route("/auth", methods=["POST"])
-def authenticate():
+        return check_login('login.html', title=title, heading=heading)
+
     username = request.form.get('username')
     password = request.form.get('password')
     
     # TODO: validate(username, password)
 
-    user = db.execute("SELECT * FROM users WHERE username = :username AND password = :password",
-    {
+    user = db.execute("SELECT * FROM users WHERE username = :username AND password = :password",{
         "username": username,
         "password": password
     }).fetchone()
@@ -45,15 +52,17 @@ def authenticate():
         return render_template('login.html', message="username or password incorrect")
     
     # TODO: Open Session For user
-    
+    session["USER"] = user
     return redirect(url_for('search'))
 
-@app.route("/signup")
+@app.route('/signup', methods=["GET", "POST"])
 def signup():
-    return render_template('signup.html', title='New User')
+    if request.method == "GET":
+        title = "New User"
+        heading = "Sign Up"
+        
+        return check_login('signup.html', title=title, heading=heading)
 
-@app.route("/register", methods=["POST"])
-def register():
     username = request.form.get('username')
     password = request.form.get('password')
     firstname = request.form.get('firstname')
@@ -75,18 +84,37 @@ def register():
             "lastname": lastname,
             "password": password
         })
-    
+        
         db.commit()
+    
         return render_template('success.html')
 
+    # TODO:
+    # Handle case for user already registered
     return redirect('signup')
-
 
 @app.route("/search")
 def search():
+    title = "Search"
+    USER = session.get("USER")
     # Restrict This Page Only To Logged In Users
-    return render_template('search.html', title='Search')
+    if USER is None:
+        return redirect(url_for('login'))
+
+    return render_template('search.html', title=title, heading=title, user=USER)
 
 @app.route("/logout")
 def logout():
-    return
+    if session.get("USER"):
+        del(session["USER"])
+        
+        return redirect(url_for('index'))
+    
+    return redirect(url_for('login'))
+
+def check_login(render, title, heading):
+    USER = session.get("USER")
+    if USER:
+        return redirect(url_for('search'))
+
+    return render_template(render, title=title, heading=heading, user=USER)
