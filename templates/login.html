@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <p> {{ message }} </p>
+    <form action="{{ url_for('authenticate') }}" method="POST">
+        Username: <input type="text" name="username" placeholder="password">
+        Password: <input type="password" name="password" placeholder="password">
+        <button>login</button>
+    </form>
+    <p> Not yet registered ? <a href="{{ url_for('signup') }}">Sign Up</a>.</p>
+{% endblock %}

@@ -1,5 +1,11 @@
 {% extends 'layout.html' %}
 
+{% block nav %}
+    <li><a href="{{ url_for('login') }}">Login</a></li>
+    <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+{% endblock %}
+
 {% block body %}
-    {% block heading %}{% endblock %}
+    <h1> Project 1: Books </h1>
+    <p>Book review website</p>
 {% endblock %}
