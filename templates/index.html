@@ -1,5 +1,16 @@
 {% extends 'layout.html' %}
 
+{% block nav %}
+    {% if loggedin %}
+        <li><a href="{{ url_for('search') }}">Search</a></li>
+        <li>{{user.firstname}}</li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+    {% else %}
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+        <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+    {% endif %}
+{% endblock %}
+
 {% block body %}
-    {% block heading %}{% endblock %}
+    <p>Book review website</p>
 {% endblock %}

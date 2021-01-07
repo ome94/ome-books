@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{%  block nav %}
+    <li>{{user.firstname}}</li>
+    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+{% endblock %}
+
+{% block body %}
+    <form action="{{ url_for('search') }}">
+        <input type="search">
+        <button>Search</button>
+    </form>
+{% endblock %}

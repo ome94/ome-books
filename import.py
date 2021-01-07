@@ -60,7 +60,7 @@ def main():
         )
 
         progress += 1
-        print(f"{progress}/5000")
+        print(f"{progress}/5000 - {title}")
     
     db.commit()
 
