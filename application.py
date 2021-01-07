@@ -118,3 +118,6 @@ def check_login(render, title, heading):
         return redirect(url_for('search'))
 
     return render_template(render, title=title, heading=heading, user=USER)
+
+if __name__ == "__main__":
+    app.run()
