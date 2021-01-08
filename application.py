@@ -8,7 +8,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 app = Flask(__name__)
 
 # Check for environment variable
-if not os.getenv("DATABASE_URL"):
+if not os.getenv("DATABASE_URL") or not os.getenv("USERS_DB_URL"):
     raise RuntimeError("DATABASE_URL is not set")
 
 # Configure session to use filesystem
@@ -16,12 +16,14 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Set up database
+# Set up database for books
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
 # TODO:
 # Set up another database for users
+usrs_engine = create_engine(os.getenv("USERS_DB_URL"))
+usrs = scoped_session(sessionmaker(bind=usrs_engine))
 
 @app.route("/")
 def index():
@@ -43,7 +45,7 @@ def login():
     
     # TODO: validate(username, password)
 
-    user = db.execute("SELECT * FROM users WHERE username = :username AND password = :password",{
+    user = usrs.execute("SELECT * FROM users WHERE username = :username AND password = :password",{
         "username": username,
         "password": password
     }).fetchone()
@@ -73,19 +75,19 @@ def signup():
     # CHECKS:
     # 1. Not empty strings,
     # 2. User not already registered
-    user = db.execute("SELECT username FROM users WHERE username = :username",{
+    user = usrs.execute("SELECT username FROM users WHERE username = :username",{
         "username": username,
     }).fetchone()
     
     if user is None:
-        db.execute("INSERT INTO users(firstname, lastname, username, password) VALUES(:firstname, :lastname,:username, :password)",{
+        usrs.execute("INSERT INTO users(firstname, lastname, username, password) VALUES(:firstname, :lastname,:username, :password)",{
             "username": username,
             "firstname": firstname,
             "lastname": lastname,
             "password": password
         })
         
-        db.commit()
+        usrs.commit()
     
         return render_template('success.html')
 
