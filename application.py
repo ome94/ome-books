@@ -8,7 +8,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 app = Flask(__name__)
 
 # Check for environment variable
-if not os.getenv("DATABASE_URL") or not os.getenv("USERS_DB_URL"):
+if not os.getenv("DATABASE_URL") or not os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
     raise RuntimeError("DATABASE_URL is not set")
 
 # Configure session to use filesystem
@@ -22,7 +22,7 @@ db = scoped_session(sessionmaker(bind=engine))
 
 # TODO:
 # Set up another database for users
-usrs_engine = create_engine(os.getenv("USERS_DB_URL"))
+usrs_engine = create_engine(os.getenv("HEROKU_POSTGRESQL_IVORY_URL"))
 usrs = scoped_session(sessionmaker(bind=usrs_engine))
 
 @app.route("/")
@@ -88,7 +88,7 @@ def signup():
         })
         
         usrs.commit()
-    
+
         return render_template('success.html')
 
     # TODO:
@@ -104,6 +104,24 @@ def search():
         return redirect(url_for('login'))
 
     return render_template('search.html', title=title, heading=title, user=USER)
+
+@app.route("/results", methods=["POST"])
+def results():
+    title = query = request.form.get("query")
+    heading = f"Results for - {query}"
+    USER = session.get("USER")
+
+    try:
+        isbn = int(query[0:-1])
+        results = db.execute(f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE isbn LIKE '%{isbn}%'").fetchall() #, {
+        #     "query": isbn
+        # }).fetchone()
+    except ValueError:
+        results = db.execute(f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE title like '%{query}%' OR name LIKE '%{query}%'").fetchall() #, {
+        # "query": query
+        # }).fetchone()
+
+    return render_template('results.html', title=title, heading=heading, user=USER, results=results, query=query)
 
 @app.route("/logout")
 def logout():

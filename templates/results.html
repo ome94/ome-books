@@ -1,0 +1,28 @@
+{% extends 'search.html' %}
+
+{% block results %}
+    <table border="1">
+        <thead>
+            <th>
+                <td>Title</td>
+                <td>Author</td>
+                <td>ISBN</td>
+                <td>Year</td>
+            </th>
+        </thead>
+        <tbody>
+            {% for book in results %}
+                <tr>
+                    <td>{{book.title}}</td>
+                    <td>{{book.name}}</td>
+                    <td>{{book.isbn}}</td>
+                    <td>{{book.year}}</td>
+                </tr>
+            {% else %}
+            <tr>
+                <td>No book or author matches '{{query}}'</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
