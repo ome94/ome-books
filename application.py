@@ -88,7 +88,7 @@ def signup():
         })
         
         usrs.commit()
-    
+
         return render_template('success.html')
 
     # TODO:
@@ -104,6 +104,24 @@ def search():
         return redirect(url_for('login'))
 
     return render_template('search.html', title=title, heading=title, user=USER)
+
+@app.route("/results", methods=["POST"])
+def results():
+    title = query = request.form.get("query")
+    heading = f"Results for - {query}"
+    USER = session.get("USER")
+
+    try:
+        isbn = int(query[0:-1])
+        results = db.execute(f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE isbn LIKE '%{isbn}%'").fetchall() #, {
+        #     "query": isbn
+        # }).fetchone()
+    except ValueError:
+        results = db.execute(f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE title like '%{query}%' OR name LIKE '%{query}%'").fetchall() #, {
+        # "query": query
+        # }).fetchone()
+
+    return render_template('results.html', title=title, heading=heading, user=USER, results=results, query=query)
 
 @app.route("/logout")
 def logout():
