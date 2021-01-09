@@ -6,8 +6,10 @@
 {% endblock %}
 
 {% block body %}
-    <form action="{{ url_for('search') }}">
-        <input type="search">
+    <form action="{{ url_for('results') }}", method="POST">
+        <input type="search" name="query" value="{{query or ''}}">
         <button>Search</button>
     </form>
+    {% block results %}
+    {% endblock %}
 {% endblock %}
