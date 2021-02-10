@@ -3,17 +3,21 @@
     <head>
         <meta charset="utf-8">
         <title> {{ title }} </title>
-        <!-- <link rel="stylesheet" href=""> -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}} ">
     </head>
     <body>
         <nav>
+            <a id="logo" href="{{url_for('index')}}">OME-BOOKS</a>
             <ul>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 {% block nav %}{% endblock %}
             </ul>
         </nav>
-        <h1>{{ heading }}</h1>
-        {% block body %}
-        {% endblock %}
+        <main>
+            <h1>{{ heading }}</h1>
+            {% block body %}
+            {% endblock %}
+        </main>
     </body>
 </html>
