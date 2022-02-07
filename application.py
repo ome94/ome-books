@@ -1,15 +1,22 @@
+from ast import stmt
 import os
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_session import Session
+import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-app = Flask(__name__)
 
 # Check for environment variable
 if not os.getenv("DATABASE_URL") or not os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
-    raise RuntimeError("DATABASE_URL is not set")
+    if not os.getenv("DATABASE_URL"):
+        raise RuntimeError("DATABASE_URL is not set")
+        
+    elif os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
+        raise RuntimeError("HEROKU_POSTGRESQL_IVORY_URL is not set")
+        
+app = Flask(__name__)
 
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
@@ -30,7 +37,7 @@ def index():
     heading = "Project 1: Books"
     USER = session.get("USER")
 
-    return render_template('index.html', title=title, heading=heading, loggedin= bool(USER), user=USER)
+    return render_template('index.html', title=title, heading=heading, loggedin=bool(USER), user=USER)
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -40,14 +47,11 @@ def login():
         return check_login('login.html', title=title, heading=heading)
 
     username = request.form.get('username')
-    password = request.form.get('password')
+    password = hashlib.md5(request.form.get('password').encode()).hexdigest()
     
     # TODO: validate(username, password)
-
-    user = usrs.execute("SELECT * FROM users WHERE username = :username AND password = :password",{
-        "username": username,
-        "password": password
-    }).fetchone()
+    stmt = "SELECT * FROM users WHERE username = :username AND password = :password"
+    user = usrs.execute(stmt, {"username": username, "password": password}).fetchone()
 
     if user is None:
         return render_template('login.html', message="username or password incorrect")
@@ -65,7 +69,7 @@ def signup():
         return check_login('signup.html', title=title, heading=heading)
 
     username = request.form.get('username')
-    password = request.form.get('password')
+    password = hashlib.md5(request.form.get('password').encode()).hexdigest()
     firstname = request.form.get('firstname')
     lastname = request.form.get('lastname')
 
@@ -74,12 +78,12 @@ def signup():
     # CHECKS:
     # 1. Not empty strings,
     # 2. User not already registered
-    user = usrs.execute("SELECT username FROM users WHERE username = :username",{
-        "username": username,
-    }).fetchone()
+    stmt = "SELECT username FROM users WHERE username = :username"
+    user = usrs.execute(stmt, {"username": username}).fetchone()
     
     if user is None:
-        usrs.execute("INSERT INTO users(firstname, lastname, username, password) VALUES(:firstname, :lastname,:username, :password)",{
+        stmt = "INSERT INTO users(firstname, lastname, username, password) VALUES(:firstname, :lastname,:username, :password)"
+        usrs.execute(stmt, {
             "username": username,
             "firstname": firstname,
             "lastname": lastname,
@@ -112,11 +116,13 @@ def results():
 
     try:
         isbn = int(query[0:-1])
-        results = db.execute(f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE isbn LIKE '%{isbn}%'").fetchall() #, {
+        stmt = f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE isbn LIKE '%{isbn}%'"
+        results = db.execute(stmt).fetchall() #, {
         #     "query": isbn
         # }).fetchone()
     except ValueError:
-        results = db.execute(f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE title like '%{query}%' OR name LIKE '%{query}%'").fetchall() #, {
+        stmt = f"SELECT title, name, isbn, year FROM books b JOIN authors a ON b.author_id = a.id WHERE title like '%{query}%' OR name LIKE '%{query}%'"
+        results = db.execute(stmt).fetchall() #, {
         # "query": query
         # }).fetchone()
 
@@ -138,5 +144,5 @@ def check_login(render, title, heading):
 
     return render_template(render, title=title, heading=heading, user=USER)
 
-# if __name__ == "__main__":
-#     app.run()
+if __name__ == "__main__":
+    app.run()
