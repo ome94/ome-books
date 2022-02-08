@@ -1,20 +1,9 @@
-from ast import stmt
-import os
-
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_session import Session
 import hashlib
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-
+from create_dbs import db, usrs
 
 # Check for environment variable
-if not os.getenv("DATABASE_URL") or not os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
-    if not os.getenv("DATABASE_URL"):
-        raise RuntimeError("DATABASE_URL is not set")
-        
-    elif os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
-        raise RuntimeError("HEROKU_POSTGRESQL_IVORY_URL is not set")
         
 app = Flask(__name__)
 
@@ -22,14 +11,10 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-# Set up database for books
-engine = create_engine(os.getenv("DATABASE_URL"))
-db = scoped_session(sessionmaker(bind=engine))
 
 # TODO:
 # Set up another database for users
-usrs_engine = create_engine(os.getenv("HEROKU_POSTGRESQL_IVORY_URL"))
-usrs = scoped_session(sessionmaker(bind=usrs_engine))
+# usrs_engine = create_engine(os.getenv("HEROKU_POSTGRESQL_IVORY_URL"))
 
 @app.route("/")
 def index():
