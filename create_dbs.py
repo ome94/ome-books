@@ -23,56 +23,60 @@ usrs_mtdata = MetaData()
 
 def create_authors():
     if 'authors' not in engine.table_names():
-        with engine.connect() as conn:
-            print("Creating Authors Table...")
-            authors = Table(
-                'authors', db.registry,
-                Column('id', Integer, primary_key=True),
-                Column('name', String, nullable=False)
+        print("Creating Authors Table...")
+        authors = Table(
+            'authors', db.registry,
+            Column('id', Integer, primary_key=True),
+            Column('name', String, nullable=False)
 
-            )
-            db.registry.metadata.create_all(engine)
-            conn.commit()
-            print("Authors Created.")
+        )
+        db.registry.metadata.create_all(engine)
+        print("Authors Created.")
+
     else:
         print('Authors table already exists')
 
 def create_books():
     if 'books' not in engine.table_names():
-        with engine.connect() as conn:
-            print("Creating Books Table...")
-            books = Table(
-                'books', db.registry,
-                Column('id', Integer, primary_key=True),
-                Column('title', String, nullable=False),
-                Column('author_id', ForeignKey('authors.id')),
-                Column('isbn', String(10), unique=True, nullable=False),
-                Column('year', Integer, nullable=False)
-            )
+        print("Creating Books Table...")
+        books = Table(
+            'books', db.registry,
+            Column('id', Integer, primary_key=True),
+            Column('title', String, nullable=False),
+            Column('author_id', ForeignKey('authors.id')),
+            Column('isbn', String(10), unique=True, nullable=False),
+            Column('year', Integer, nullable=False)
+        )
 
-            metadata.create_all(engine)
-            conn.commit()
-            print("Books Created.")
+        metadata.create_all(engine)
+        print("Books Created.")
+        
+        print()
+        print('Populating Books And Authors')
+        populate_table()
+        print('Done')
+
     else:
         print('Books table already exists')
 
 def create_users():
-    if 'users' not in usrs_eng.connect():
-        with usrs_eng.connect() as usrs:
-            user_table = Table(
-                'users', usrs_mtdata,
-                Column('username', String, primary_key=True),
-                Column('password', String, nullable=False),
-                Column('firstname', String, nullable=False),
-                Column('lastname', String, nullable=False)
-            )
+    if 'users' not in usrs_eng.table_names():
+        user_table = Table(
+            'users', usrs_mtdata,
+            Column('username', String, primary_key=True),
+            Column('password', String, nullable=False),
+            Column('firstname', String, nullable=False),
+            Column('lastname', String, nullable=False)
+        )
 
-            usrs_mtdata.create_all(usrs_eng)
-            usrs.commit()
-            print('Users table created')
+        usrs_mtdata.create_all(usrs_eng)
+        print('Users table created')
+        
     else:
-        print('Users tablee already exists.')
+        print('Users table already exists.')
 
+# TODO
+# Account for the possibility of books and authors already existing.
 def populate_table():
     f = open('books.csv')
     reader = csv.reader(f) # A csv reader object is returned
@@ -114,7 +118,6 @@ def get_author_id(author):
 def main():
     create_authors()
     create_books()
-    populate_table()
     create_users()
 
 if __name__ == "__main__":
