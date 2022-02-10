@@ -30,7 +30,7 @@ def create_authors():
             Column('name', String, nullable=False)
 
         )
-        db.registry.metadata.create_all(engine)
+        metadata.create_all(engine)
         print("Authors Created.")
 
     else:
