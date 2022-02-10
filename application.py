@@ -1,20 +1,17 @@
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_session import Session
+from sqlalchemy.exc import NoResultFound
 import hashlib
 from create_dbs import db, usrs
+from models import User
 
-# Check for environment variable
-        
+# Check for environment variable        
 app = Flask(__name__)
 
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-
-# TODO:
-# Set up another database for users
-# usrs_engine = create_engine(os.getenv("HEROKU_POSTGRESQL_IVORY_URL"))
 
 @app.route("/")
 def index():
@@ -35,10 +32,10 @@ def login():
     password = hashlib.md5(request.form.get('password').encode()).hexdigest()
     
     # TODO: validate(username, password)
-    stmt = "SELECT * FROM users WHERE username = :username AND password = :password"
-    user = usrs.execute(stmt, {"username": username, "password": password}).fetchone()
-
-    if user is None:
+    try:
+        user = usrs.query(User).filter_by(username=username, password=password).one()
+    
+    except NoResultFound:
         return render_template('login.html', message="username or password incorrect")
     
     # TODO: Open Session For user
@@ -63,25 +60,18 @@ def signup():
     # CHECKS:
     # 1. Not empty strings,
     # 2. User not already registered
-    stmt = "SELECT username FROM users WHERE username = :username"
-    user = usrs.execute(stmt, {"username": username}).fetchone()
-    
-    if user is None:
-        stmt = "INSERT INTO users(firstname, lastname, username, password) VALUES(:firstname, :lastname,:username, :password)"
-        usrs.execute(stmt, {
-            "username": username,
-            "firstname": firstname,
-            "lastname": lastname,
-            "password": password
-        })
-        
+    try:
+        user = usrs.query(User).filter_by(username=username).one()
+        return redirect('signup')
+
+    except NoResultFound:
+        usrs.add(
+            User(username=username, password=password, firstname=firstname, lastname=lastname)
+        )
+
         usrs.commit()
 
-        return render_template('success.html')
-
-    # TODO:
-    # Handle case for user already registered
-    return redirect('signup')
+    return render_template('success.html')
 
 @app.route("/search")
 def search():
