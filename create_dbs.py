@@ -6,17 +6,17 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from models import Author, Book, Base, Usr_Base
 
 # Check for environment variable
-if not os.getenv("DATABASE_URL") or not os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
-    if not os.getenv("DATABASE_URL"):
+if not os.getenv("DATABASE_URI") or not os.getenv("HEROKU_POSTGRESQL_IVORY_URI"):
+    if not os.getenv("DATABASE_URI"):
         raise RuntimeError("DATABASE_URL is not set")
 
-    elif not os.getenv("HEROKU_POSTGRESQL_IVORY_URL"):
+    elif not os.getenv("HEROKU_POSTGRESQL_IVORY_URI"):
         raise RuntimeError("HEROKU_POSTGRESQL_IVORY_URL is not set")
 
 # Set up database
-engine = create_engine(os.getenv("DATABASE_URL"))
+engine = create_engine(os.getenv("DATABASE_URI"))
 db = scoped_session(sessionmaker(bind=engine))
-usrs_eng = create_engine(os.getenv("HEROKU_POSTGRESQL_IVORY_URL"))
+usrs_eng = create_engine(os.getenv("HEROKU_POSTGRESQL_IVORY_URI"))
 usrs = scoped_session(sessionmaker(bind=usrs_eng))
 
 if not ("books" in engine.table_names() or "authors" in engine.table_names()):
